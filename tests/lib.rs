@@ -1,6 +1,12 @@
 extern crate property_rs;
 
-use property_rs::World;
+use property_rs::{ World, Entity };
+
+/// Struct to be used as a component.
+struct Position {
+    x: u64,
+    y: u64,
+}
 
 #[test]
 fn adding_and_deleting_entities() {
@@ -34,4 +40,89 @@ fn adding_and_deleting_entities() {
 
     // The new entity should have a uuid of 3, because these go up by 1 for every entity created.
     assert!(e3.uuid == 3);
+
+    // Copy the values of entity 2 so that we can try to acces is after deletion.
+    let e2_copy = Entity{ idx: e2.idx, uuid: e2.uuid };
+
+    // Add a component to entity 2 and then remove the entity.
+    world.add_component(&e2, Position{ x: 3, y: 10 });
+    world.remove_entity(e2);
+
+    // Try and acces the component with the invalid entity, this should return `None`.
+    if let Some(_) = world.get_mut_component::<Position>(&e2_copy) {
+        panic!("The Position component of entity 2 could be accesed
+            after the entity was deleted.");
+    }
+}
+
+#[test]
+fn adding_and_getting_components() {
+    let mut world = World::new();
+
+    // Add some entities and components to see if the world will return the correct components.
+    let e1 = world.add_entity();
+    let e2 = world.add_entity();
+
+    world.add_component(&e2, Position{ x: 5, y: 7 });
+    world.add_component(&e1, Position{ x: 10, y: 12 });
+
+    let e3 = world.add_entity();
+
+    let e4 = world.add_entity();
+    world.add_component(&e4, Position{ x: 3, y: 14 });
+
+    // Get a reference to the Position component of entity 1.
+    let e1_pos = world.get_component::<Position>(&e1);
+
+    if let Some(ref position) = e1_pos {
+        assert!(position.x == 10);
+        assert!(position.y == 12);
+    } else {
+        panic!("The Position component of entity 1 should exist, but it doesn't.");
+    }
+
+    // Get a reference to the Position component of entity 2.
+    let e2_pos = world.get_component::<Position>(&e2);
+
+    if let Some(ref position) = e2_pos {
+        assert!(position.x == 5);
+        assert!(position.y == 7);
+    } else {
+        panic!("The Position component of entity 2 should exist, but it doesn't.");
+    }
+
+    // The Position component of entity 3 shouldn't exist.
+    let e3_pos = world.get_component::<Position>(&e3);
+
+    if let Some(ref position) = e3_pos {
+        panic!("Entity 3 shouldn't have a position component, but it does: x = {}, y = {}",
+            position.x, position.y);
+    }
+}
+
+#[test]
+fn mutating_components() {
+    let mut world = World::new();
+
+    let e1 = world.add_entity();
+    let e2 = world.add_entity();
+
+    world.add_component(&e1, Position{ x: 4, y: 13 });
+    world.add_component(&e2, Position{ x: 8, y: 0 });
+
+    // Change the values of the Position component of entity 1.
+    if let Some(ref mut position) = world.get_mut_component::<Position>(&e1) {
+        position.x = 10;
+        position.y = 14;
+    } else {
+        panic!("The Position component of entity 1 should exist, but it doesn't.");
+    }
+
+    // Check if the values have changed correctly.
+    if let Some(ref position) = world.get_mut_component::<Position>(&e1) {
+        assert!(position.x == 10);
+        assert!(position.y == 14);
+    } else {
+        panic!("The Position component of entity 1 should exist, but it doesn't.");
+    }
 }

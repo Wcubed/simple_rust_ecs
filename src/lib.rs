@@ -1,6 +1,7 @@
 extern crate anymap;
 
 use anymap::AnyMap;
+use std::any::Any;
 
 /// Entity identifier used to acces an Entity in the world.
 pub struct Entity {
@@ -66,6 +67,8 @@ impl World {
         if self.is_valid_entity(&entity) {
             self.active[entity.idx] = 0;
             self.reusable_idxs.push(entity.idx);
+            // Clear the components associated with the entity.
+            self.components[entity.idx].clear();
             return true;
         }
         false
@@ -79,5 +82,31 @@ impl World {
             },
             None => false,
         }
+    }
+
+    /// Adds a new component to an entity.
+    /// If the entity already had that component, that component is returned.
+    /// Otherwise, `None` is returned.
+    pub fn add_component<T: Any>(&mut self, entity: &Entity, component: T) -> Option<T> {
+        if self.is_valid_entity(entity) {
+            return self.components[entity.idx].insert(component);
+        }
+        None
+    }
+
+    /// Returns a reference to a component, if it exists.
+    pub fn get_component<T: Any>(&self, entity: &Entity) -> Option<&T> {
+        if self.is_valid_entity(entity) {
+            return self.components[entity.idx].get::<T>()
+        }
+        None
+    }
+
+    /// Returns a mutable reference to a component, if it exists.
+    pub fn get_mut_component<T: Any>(&mut self, entity: &Entity) -> Option<&mut T> {
+        if self.is_valid_entity(entity) {
+            return self.components[entity.idx].get_mut::<T>();
+        }
+        None
     }
 }
