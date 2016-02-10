@@ -4,8 +4,8 @@ use anymap::AnyMap;
 
 /// Entity identifier used to acces an Entity in the world.
 pub struct Entity {
-    idx: usize,
-    uuid: usize,
+    pub idx: usize,
+    pub uuid: usize,
 }
 
 
@@ -51,15 +51,24 @@ impl World {
         let uuid = self.next_uuid;
         self.next_uuid += 1;
 
+        // Register the entity as active.
+        if self.active.len() <= uuid {
+            self.active.resize(uuid + 1, 0);
+        }
+        self.active[idx] = uuid;
+
         Entity { idx: idx, uuid: uuid }
     }
 
     /// Removes an entity, but only if the uuid matches.
-    pub fn remove_entity(&mut self, entity: &Entity) {
-        if self.is_valid_entity(entity) {
+    /// Returns true if the entity existed and could be deleted, otherwise false.
+    pub fn remove_entity(&mut self, entity: Entity) -> bool {
+        if self.is_valid_entity(&entity) {
             self.active[entity.idx] = 0;
             self.reusable_idxs.push(entity.idx);
+            return true;
         }
+        false
     }
 
     /// Checks if an `Entity` reference is valid.
