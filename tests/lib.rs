@@ -1,6 +1,6 @@
-extern crate property_rs;
+extern crate anymap_ecs;
 
-use property_rs::{ World, Entity };
+use anymap_ecs::{ World, Entity };
 
 /// Struct to be used as a component.
 struct Position {
@@ -124,5 +124,54 @@ fn mutating_components() {
         assert!(position.y == 14);
     } else {
         panic!("The Position component of entity 1 should exist, but it doesn't.");
+    }
+}
+
+
+#[test]
+fn iterator_test() {
+    let mut world = World::new();
+
+    // Add 10 entities, give half of them Position components.
+    for i in 0..10 {
+        let ent = world.add_entity();
+        if i % 2 == 0 {
+            world.add_component(&ent, Position{ x: i, y: i * 2 });
+        }
+    }
+
+    let mut iter_count = 0;
+    let mut pos_count = 0;
+
+    // Test the iterator, we should have 10 entities.
+    // 5 of which should have Position components.
+    for ent in world.iterator() {
+        iter_count += 1;
+
+        if let Some(_) = world.get_component::<Position>(&ent) {
+            pos_count += 1;
+        }
+    }
+
+    assert!(iter_count == 10);
+    assert!(pos_count == 5);
+}
+
+#[test]
+fn entity_list() {
+    let mut world = World::new();
+
+    // Create 10 entities.
+    for _ in 0..10 {
+        world.add_entity();
+    }
+
+    // Delete all entities.
+    for ent in world.list_entities() {
+        world.remove_entity(ent);
+    }
+
+    for _ in world.iterator() {
+        panic!("There shouldn't be any entities left, but there is at least one.");
     }
 }

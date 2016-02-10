@@ -77,10 +77,19 @@ impl World {
     /// Checks if an `Entity` reference is valid.
     pub fn is_valid_entity(&self, entity: &Entity) -> bool {
         match self.active.get(entity.idx) {
-            Some(uuid) => {
-                *uuid != 0 && entity.uuid == *uuid
+            Some(&uuid) => {
+                uuid != 0 && entity.uuid == uuid
             },
             None => false,
+        }
+    }
+
+    /// Returns the uuid currently associated with an entity index.
+    /// Returns 0 for nonexistent entities.
+    pub fn get_uuid(&self, idx: usize) -> usize {
+        match self.active.get(idx) {
+            Some(&uuid) => uuid,
+            None => 0,
         }
     }
 
@@ -108,5 +117,48 @@ impl World {
             return self.components[entity.idx].get_mut::<T>();
         }
         None
+    }
+
+    /// Returns a lazy iterator for immutable acces to the entities.
+    pub fn iterator(&self) -> EntityIterator {
+        EntityIterator {
+            active: &self.active,
+            curr: 0,
+        }
+    }
+
+    /// Returns a vector listing all the currently active entities.
+    /// Can be used to iterate over all active entities while making changes to the world.
+    pub fn list_entities(&self) -> Vec<Entity> {
+        self.active.iter().enumerate()
+            .filter(|&(_, &uuid)| uuid != 0)
+            .map(|(idx, &uuid)| Entity{ idx: idx, uuid: uuid })
+            .collect::<Vec<Entity>>()
+    }
+}
+
+/// Iterates over all valid entities in the world it was generated from.
+/// Only allows immutable acces to the world because the world has been borrowed.
+pub struct EntityIterator<'a> {
+    active: &'a Vec<usize>,
+    curr: usize,
+}
+
+impl<'a> Iterator for EntityIterator<'a> {
+    type Item = Entity;
+
+    /// Gets the componentmap for the next valid entity.
+    /// Is not really optimized.
+    fn next(&mut self) -> Option<Entity> {
+
+        for idx in self.curr .. self.active.len() {
+            if let Some(uuid) = self.active.get(idx) {
+                if *uuid != 0 {
+                    self.curr += 1;
+                    return Some(Entity{ idx: idx, uuid: *uuid });
+                }
+            }
+        }
+        return None;
     }
 }
