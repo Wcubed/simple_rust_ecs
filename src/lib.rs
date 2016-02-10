@@ -9,7 +9,7 @@ pub struct Entity {
     pub uuid: usize,
 }
 
-
+/// Keeps track of entities and their components.
 pub struct World {
     next_idx: usize,
     next_uuid: usize,
