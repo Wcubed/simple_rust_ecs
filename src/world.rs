@@ -68,13 +68,14 @@ impl World {
     }
 
     /// Slates an entity for removal.
-    /// The removal won't actually be done until `propagate_changes()` is called.
+    /// The removal won't actually be done until `confirm_changes()` is called.
     pub fn remove_entity(&mut self, entity: Entity) {
         self.ent_remove.insert(entity.idx, entity.uuid);
     }
 
     /// Removes all entities currently slated for removal.
-    pub fn propagate_changes(&mut self) {
+    /// Also clears the list of removed and changed entities.
+    pub fn confirm_changes(&mut self) {
         // Remove all entities in the `remove` list.
         for (&idx, &uuid) in self.ent_remove.iter() {
             if self.is_valid_entity(&Entity{ idx: idx, uuid: uuid }) {
@@ -86,7 +87,6 @@ impl World {
         }
 
         self.ent_remove.clear();
-
         self.ent_changed.clear();
     }
 
@@ -183,6 +183,21 @@ impl World {
         self.active.iter().enumerate()
             .filter(|&(_, &uuid)| uuid != 0)
             .map(|(idx, &uuid)| Entity{ idx: idx, uuid: uuid })
+            .collect::<Vec<Entity>>()
+    }
+
+    /// Returns a vector listing all the entities currently slated for removal.
+    pub fn list_removals(&self) -> Vec<Entity> {
+        self.ent_remove.iter()
+            .map(|(&idx, &uuid)| Entity{ idx: idx, uuid: uuid })
+            .collect::<Vec<Entity>>()
+    }
+
+    /// Returns a vector listing all the entities that have changed since the last call of.
+    /// `confirm_changes`.
+    pub fn list_changes(&self) -> Vec<Entity> {
+        self.ent_changed.iter()
+            .map(|(&idx, &uuid)| Entity{ idx: idx, uuid: uuid })
             .collect::<Vec<Entity>>()
     }
 }

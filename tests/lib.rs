@@ -1,6 +1,6 @@
-extern crate anymap_ecs;
+extern crate srecs;
 
-use anymap_ecs::{ World, Entity };
+use srecs::{ World, Entity };
 
 /// Struct to be used as a component.
 struct Position {
@@ -29,7 +29,7 @@ fn adding_and_deleting_entities() {
     assert!(e1.uuid != e2.uuid);
 
     world.remove_entity(e1);
-    world.propagate_changes();
+    world.confirm_changes();
 
     let e3 = world.add_entity();
 
@@ -48,7 +48,7 @@ fn adding_and_deleting_entities() {
     world.add_component(&e2, Position{ x: 3, y: 10 });
     world.remove_entity(e2);
 
-    world.propagate_changes();
+    world.confirm_changes();
 
     // Try and acces the component with the invalid entity, this should return `None`.
     if let Some(_) = world.get_mut_component::<Position>(&e2_copy) {
@@ -173,7 +173,7 @@ fn entity_list() {
         world.remove_entity(ent);
     }
 
-    world.propagate_changes();
+    world.confirm_changes();
 
     for _ in world.iterator() {
         panic!("There shouldn't be any entities left, but there is at least one.");
