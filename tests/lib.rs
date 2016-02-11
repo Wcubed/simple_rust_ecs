@@ -1,6 +1,8 @@
 extern crate srecs;
 
-use srecs::{ World, Entity };
+use srecs::Entity;
+use srecs::world::World;
+use srecs::components::*;
 
 /// Struct to be used as a component.
 struct Position {
@@ -221,4 +223,33 @@ fn adding_and_removing_components() {
 
     // There should only be 4 enitities left with a position component.
     assert!(pos_count == 4);
+}
+
+#[test]
+fn parenting_test() {
+    let mut world = World::new();
+
+    let parent = world.add_entity();
+    let child = world.add_entity();
+    let grand_child = world.add_entity();
+
+    world.add_component(&parent, Position{ x: 10, y: 12 });
+    world.add_component(&child, Parent(parent));
+    world.add_component(&grand_child, Parent(child));
+
+    // Check if the parent still has the Position component.
+    if let Some(pos) = world.get_component::<Position>(&parent) {
+        assert!(pos.x == 10);
+        assert!(pos.y == 12);
+    } else {
+        panic!("The parent should still have it's position component, but it doesn't.");
+    }
+
+    // Check if the grandchild has indeed inherited the Position from it's grandparent.
+    if let Some(pos) = world.get_component::<Position>(&grand_child) {
+        assert!(pos.x == 10);
+        assert!(pos.y == 12);
+    } else {
+        panic!("The grandchild should have inherited the Position component, it didn't.");
+    }
 }

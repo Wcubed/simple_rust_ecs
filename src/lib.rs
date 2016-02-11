@@ -3,10 +3,12 @@
 extern crate anymap;
 
 pub mod world;
+pub mod components;
 
-pub use world::World;
+use world::World;
 
 /// Entity identifier used to acces an Entity in the world.
+#[derive(Copy, Clone)]
 pub struct Entity {
     pub idx: usize,
     pub uuid: usize,

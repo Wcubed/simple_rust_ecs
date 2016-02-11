@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use Entity;
 use EntityIterator;
+use components::{ Parent, Children };
 
 /// Keeps track of entities and their components.
 pub struct World {
@@ -128,15 +129,43 @@ impl World {
         false
     }
 
-    /// Returns a reference to a component, if it exists.
+    /// Returns a reference to a component.
+    /// If a component does not exist, but it does in the parent,
+    /// the parent's component will be returned.
     pub fn get_component<T: Any>(&self, entity: &Entity) -> Option<&T> {
         if self.is_valid_entity(entity) {
-            return self.components[entity.idx].get::<T>()
+            // See if the component is there, if so: return it.
+            match self.components[entity.idx].get::<T>() {
+                Some(T) => return Some(T),
+                None => {
+                    // This entity doesn't have the component.
+                    // See if has inherited it from a parent.
+                    let mut cur_ent = entity;
+                    loop  {
+                        if self.is_valid_entity(cur_ent) {
+                            if let Some(comp) = self.components[cur_ent.idx].get::<T>() {
+                                return Some(comp);
+                            }
+                            if let Some(parent) = self.components[cur_ent.idx].get::<Parent>() {
+                                let Parent(cur_ent) = *parent;
+                            } else {
+                                // No parents left.
+                                break;
+                            }
+                        } else {
+                            // Parent not valid.
+                            break;
+                        }
+                    }
+                }
+            }
         }
         None
     }
 
     /// Returns a mutable reference to a component, if it exists.
+    /// Mutable references won't be retreived from an entities parent,
+    /// as this will easily lead to bugs that are very hard to debug.
     pub fn get_mut_component<T: Any>(&mut self, entity: &Entity) -> Option<&mut T> {
         if self.is_valid_entity(entity) {
             let comp = self.components[entity.idx].get_mut::<T>();
