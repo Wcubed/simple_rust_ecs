@@ -28,8 +28,8 @@ fn adding_and_deleting_entities() {
     // Two uuids may never be the same.
     assert!(e1.uuid != e2.uuid);
 
-    // Deleting an existing entity should succeed and return true.
-    assert!(world.remove_entity(e1));
+    world.remove_entity(e1);
+    world.propagate_changes();
 
     let e3 = world.add_entity();
 
@@ -47,6 +47,8 @@ fn adding_and_deleting_entities() {
     // Add a component to entity 2 and then remove the entity.
     world.add_component(&e2, Position{ x: 3, y: 10 });
     world.remove_entity(e2);
+
+    world.propagate_changes();
 
     // Try and acces the component with the invalid entity, this should return `None`.
     if let Some(_) = world.get_mut_component::<Position>(&e2_copy) {
@@ -170,6 +172,8 @@ fn entity_list() {
     for ent in world.list_entities() {
         world.remove_entity(ent);
     }
+
+    world.propagate_changes();
 
     for _ in world.iterator() {
         panic!("There shouldn't be any entities left, but there is at least one.");
