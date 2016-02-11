@@ -114,6 +114,7 @@ impl World {
     /// Otherwise, `None` is returned.
     pub fn add_component<T: Any>(&mut self, entity: &Entity, component: T) -> Option<T> {
         if self.is_valid_entity(entity) {
+            self.ent_changed.insert(entity.idx, entity.uuid);
             return self.components[entity.idx].insert(component);
         }
         None
@@ -138,7 +139,32 @@ impl World {
     /// Returns a mutable reference to a component, if it exists.
     pub fn get_mut_component<T: Any>(&mut self, entity: &Entity) -> Option<&mut T> {
         if self.is_valid_entity(entity) {
-            return self.components[entity.idx].get_mut::<T>();
+            let comp = self.components[entity.idx].get_mut::<T>();
+
+            return match comp {
+                Some(val) => {
+                    self.ent_changed.insert(entity.idx, entity.uuid);
+                    Some(val)
+                },
+                None => None,
+            }
+        }
+        None
+    }
+
+    /// Removes a component from an entity.
+    /// Returning the component if it existed, or `None` if it didn't.
+    pub fn remove_component<T: Any>(&mut self, entity: &Entity) -> Option<T> {
+        if self.is_valid_entity(entity) {
+            let res = self.components[entity.idx].remove::<T>();
+
+            return match res {
+                Some(res) => {
+                    self.ent_changed.insert(entity.idx, entity.uuid);
+                    Some(res)
+                },
+                None => None,
+            }
         }
         None
     }

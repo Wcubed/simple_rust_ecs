@@ -179,3 +179,46 @@ fn entity_list() {
         panic!("There shouldn't be any entities left, but there is at least one.");
     }
 }
+
+#[test]
+fn adding_and_removing_components() {
+    let mut world = World::new();
+
+    // Add 10 entities, give half of them Position components.
+    for i in 0..10 {
+        let ent = world.add_entity();
+        if i % 2 == 0 {
+            world.add_component(&ent, Position{ x: i, y: i * 2 });
+        }
+    }
+
+    let mut pos_count = 0;
+
+    for ent in world.list_entities() {
+        if world.has_component::<Position>(&ent) {
+            pos_count += 1;
+        }
+    }
+
+    // There should be 5 entities with Position components.
+    assert!(pos_count == 5);
+
+    // Remove 1 of the components.
+    for (i, ent) in world.list_entities().iter().enumerate() {
+        if i == 2 {
+            world.remove_component::<Position>(&ent);
+            break;
+        }
+    }
+
+    pos_count = 0;
+
+    for ent in world.list_entities() {
+        if world.has_component::<Position>(&ent) {
+            pos_count += 1;
+        }
+    }
+
+    // There should only be 4 enitities left with a position component.
+    assert!(pos_count == 4);
+}
