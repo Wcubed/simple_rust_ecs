@@ -1,5 +1,5 @@
 [package]
-name = "anymap_ecs"
+name = "srs_ecs"
 version = "0.1.0"
 authors = ["Wybe <wybe@wwestra.nl>"]
 

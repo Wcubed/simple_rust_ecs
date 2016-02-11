@@ -1,3 +1,5 @@
+//! srs_ecs stands for: "Simple RuSt Entity Component System".
+
 extern crate anymap;
 
 pub mod world;
