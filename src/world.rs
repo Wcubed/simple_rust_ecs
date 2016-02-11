@@ -136,19 +136,20 @@ impl World {
         if self.is_valid_entity(entity) {
             // See if the component is there, if so: return it.
             match self.components[entity.idx].get::<T>() {
-                Some(T) => return Some(T),
+                Some(comp) => return Some(comp),
                 None => {
                     // This entity doesn't have the component.
                     // See if has inherited it from a parent.
-                    let mut cur_ent = entity;
+                    let mut cur_ent = *entity;
                     println!("start: {}, {}", cur_ent.idx, cur_ent.uuid);
                     loop  {
-                        if self.is_valid_entity(cur_ent) {
+                        if self.is_valid_entity(&cur_ent) {
                             if let Some(comp) = self.components[cur_ent.idx].get::<T>() {
                                 return Some(comp);
                             }
-                            if let Some(parent) = self.components[cur_ent.idx].get::<Parent>() {
-                                let Parent(cur_ent) = *parent;
+                            if let Some(&Parent(parent)) =
+                                    self.components[cur_ent.idx].get::<Parent>() {
+                                cur_ent = parent;
                                 println!("parent: {}, {}", cur_ent.idx, cur_ent.uuid);
                             } else {
                                 // No parents left.
