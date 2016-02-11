@@ -1,5 +1,5 @@
 [package]
-name = "srs_ecs"
+name = "srecs"
 version = "0.1.0"
 authors = ["Wybe <wybe@wwestra.nl>"]
 

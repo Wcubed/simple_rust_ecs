@@ -1,4 +1,4 @@
-//! srs_ecs stands for: "Simple RuSt Entity Component System".
+//! srecs stands for: "Simple Rust Entity Component System".
 
 extern crate anymap;
 
