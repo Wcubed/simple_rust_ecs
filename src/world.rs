@@ -141,6 +141,7 @@ impl World {
                     // This entity doesn't have the component.
                     // See if has inherited it from a parent.
                     let mut cur_ent = entity;
+                    println!("start: {}, {}", cur_ent.idx, cur_ent.uuid);
                     loop  {
                         if self.is_valid_entity(cur_ent) {
                             if let Some(comp) = self.components[cur_ent.idx].get::<T>() {
@@ -148,6 +149,7 @@ impl World {
                             }
                             if let Some(parent) = self.components[cur_ent.idx].get::<Parent>() {
                                 let Parent(cur_ent) = *parent;
+                                println!("parent: {}, {}", cur_ent.idx, cur_ent.uuid);
                             } else {
                                 // No parents left.
                                 break;
