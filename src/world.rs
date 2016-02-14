@@ -122,9 +122,35 @@ impl World {
     }
 
     /// Returns whether an entity has a specific component or not.
+    /// Does also search the parents for the component.
     pub fn has_component<T: Any>(&self, entity: &Entity) -> bool {
         if self.is_valid_entity(entity) {
-            return self.components[entity.idx].contains::<T>();
+            if self.components[entity.idx].contains::<T>() {
+                return true;
+            } else {
+                // This entity doesn't have the component.
+                // See if has inherited it from a parent.
+                let mut cur_ent = *entity;
+                println!("Start {}, {}", cur_ent.idx, cur_ent.uuid);
+                loop  {
+                    if self.is_valid_entity(&cur_ent) {
+                        if self.components[cur_ent.idx].contains::<T>() {
+                            return true;
+                        }
+                        if let Some(&Parent(parent)) =
+                                self.components[cur_ent.idx].get::<Parent>() {
+                            cur_ent = parent;
+                            println!("Parent {}, {}", cur_ent.idx, cur_ent.uuid);
+                        } else {
+                            // No parents left.
+                            break;
+                        }
+                    } else {
+                        // No valid parents left.
+                        break;
+                    }
+                }
+            }
         }
         false
     }
@@ -141,7 +167,6 @@ impl World {
                     // This entity doesn't have the component.
                     // See if has inherited it from a parent.
                     let mut cur_ent = *entity;
-                    println!("start: {}, {}", cur_ent.idx, cur_ent.uuid);
                     loop  {
                         if self.is_valid_entity(&cur_ent) {
                             if let Some(comp) = self.components[cur_ent.idx].get::<T>() {
@@ -150,13 +175,12 @@ impl World {
                             if let Some(&Parent(parent)) =
                                     self.components[cur_ent.idx].get::<Parent>() {
                                 cur_ent = parent;
-                                println!("parent: {}, {}", cur_ent.idx, cur_ent.uuid);
                             } else {
                                 // No parents left.
                                 break;
                             }
                         } else {
-                            // Parent not valid.
+                            // No valid parents left.
                             break;
                         }
                     }

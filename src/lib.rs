@@ -5,8 +5,6 @@ extern crate anymap;
 pub mod world;
 pub mod components;
 
-use world::World;
-
 /// Entity identifier used to acces an Entity in the world.
 #[derive(Copy, Clone)]
 pub struct Entity {
@@ -24,8 +22,6 @@ pub struct EntityIterator<'a> {
 impl<'a> Iterator for EntityIterator<'a> {
     type Item = Entity;
 
-    /// Gets the componentmap for the next valid entity.
-    /// Is not really optimized.
     fn next(&mut self) -> Option<Entity> {
 
         for idx in self.curr .. self.active.len() {
