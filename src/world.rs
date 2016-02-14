@@ -82,7 +82,8 @@ impl World {
     }
 
     /// Removes all entities currently slated for removal.
-    /// Also clears the list of removed and changed entities.
+    /// Also clears the lists of added, removed and changed entities and
+    /// checks all entries in the `parents` hashmap for validity.
     pub fn confirm_changes(&mut self) {
         // Remove all entities in the `remove` list.
         for (&idx, &uuid) in self.ent_remove.iter() {
@@ -91,6 +92,13 @@ impl World {
                 self.reusable_idxs.push(idx);
                 // Clear the components associated with the entity.
                 self.components[idx].clear();
+            }
+        }
+
+        // Check if there are any invalid parent links.
+        for (child, parent) in self.parents.clone().iter() {
+            if !(self.is_valid_entity(child) && self.is_valid_entity(parent)) {
+                self.parents.remove(child);
             }
         }
 
