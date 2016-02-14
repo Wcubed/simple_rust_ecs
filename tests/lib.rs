@@ -17,6 +17,8 @@ fn adding_and_deleting_entities() {
     let e1 = world.add_entity();
     let e2 = world.add_entity();
 
+    world.confirm_changes();
+
     println!("E1: idx = {}, uuid = {}", e1.idx, e1.uuid);
     println!("E2: idx = {}, uuid = {}", e2.idx, e2.uuid);
 
@@ -34,6 +36,7 @@ fn adding_and_deleting_entities() {
     world.confirm_changes();
 
     let e3 = world.add_entity();
+    world.confirm_changes();
 
     println!("E3: idx = {}, uuid = {}", e3.idx, e3.uuid);
 
@@ -75,6 +78,8 @@ fn adding_and_getting_components() {
     let e4 = world.add_entity();
     world.add_component(&e4, Position{ x: 3, y: 14 });
 
+    world.confirm_changes();
+
     // Get a reference to the Position component of entity 1.
     let e1_pos = world.get_component::<Position>(&e1);
 
@@ -114,6 +119,8 @@ fn mutating_components() {
     world.add_component(&e1, Position{ x: 4, y: 13 });
     world.add_component(&e2, Position{ x: 8, y: 0 });
 
+    world.confirm_changes();
+
     // Change the values of the Position component of entity 1.
     if let Some(ref mut position) = world.get_mut_component::<Position>(&e1) {
         position.x = 10;
@@ -144,6 +151,8 @@ fn iterator_test() {
         }
     }
 
+    world.confirm_changes();
+
     let mut iter_count = 0;
     let mut pos_count = 0;
 
@@ -170,6 +179,8 @@ fn entity_list() {
         world.add_entity();
     }
 
+    world.confirm_changes();
+
     // Delete all entities.
     for ent in world.list_entities() {
         world.remove_entity(ent);
@@ -193,6 +204,8 @@ fn adding_and_removing_components() {
             world.add_component(&ent, Position{ x: i, y: i * 2 });
         }
     }
+
+    world.confirm_changes();
 
     let mut pos_count = 0;
 
@@ -232,6 +245,8 @@ fn parenting_test() {
     let parent = world.add_entity();
     let child = world.add_entity();
     let grand_child = world.add_entity();
+
+    world.confirm_changes();
 
     world.add_component(&parent, Position{ x: 10, y: 12 });
     world.add_component(&child, Parent(parent));

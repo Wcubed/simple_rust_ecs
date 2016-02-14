@@ -17,6 +17,7 @@ pub struct World {
     /// List of all the components.
     components: Vec<AnyMap>,
 
+    ent_added: HashMap<usize, usize>,
     ent_remove: HashMap<usize, usize>,
     ent_changed: HashMap<usize, usize>,
 }
@@ -30,6 +31,7 @@ impl World {
             reusable_idxs: Vec::new(),
             components: Vec::new(),
 
+            ent_added: HashMap::new(),
             ent_remove: HashMap::new(),
             ent_changed: HashMap::new(),
         }
@@ -38,6 +40,8 @@ impl World {
     /// Adds a new entity.
     /// Will reuse an idx if available, if not it will increment the idx counter and allocate
     /// space for the components.
+    /// The new entity will only show up in the iterator and list after
+    /// `confirm_changes()` is called.
     pub fn add_entity(&mut self) -> Entity {
         // Get the idx.
         let idx = match self.reusable_idxs.pop() {
@@ -62,8 +66,8 @@ impl World {
         }
         self.active[idx] = uuid;
 
-        // Register the entity as recently changed.
-        self.ent_changed.insert(idx, uuid);
+        // Register the entity as newly added.
+        self.ent_added.insert(idx, uuid);
 
         Entity { idx: idx, uuid: uuid }
     }
@@ -87,6 +91,7 @@ impl World {
             }
         }
 
+        self.ent_added.clear();
         self.ent_remove.clear();
         self.ent_changed.clear();
     }
@@ -229,6 +234,7 @@ impl World {
     pub fn iterator(&self) -> EntityIterator {
         EntityIterator {
             active: &self.active,
+            added: &self.ent_added,
             curr: 0,
         }
     }
@@ -238,10 +244,24 @@ impl World {
     pub fn list_entities(&self) -> Vec<Entity> {
         self.active.iter().enumerate()
             .filter(|&(_, &uuid)| uuid != 0)
+            .filter(|&(idx, &uuid)| {
+                if let Some(&other_uuid) = self.ent_added.get(&idx) {
+                    if uuid == other_uuid {
+                        return false;
+                    }
+                }
+                true
+            })
             .map(|(idx, &uuid)| Entity{ idx: idx, uuid: uuid })
             .collect::<Vec<Entity>>()
     }
 
+    /// Returns a vector listing all the recently added entities.
+    pub fn list_additions(&self) -> Vec<Entity> {
+        self.ent_added.iter()
+            .map(|(&idx, &uuid)| Entity{ idx: idx, uuid: uuid })
+            .collect::<Vec<Entity>>()
+    }
     /// Returns a vector listing all the entities currently slated for removal.
     pub fn list_removals(&self) -> Vec<Entity> {
         self.ent_remove.iter()
