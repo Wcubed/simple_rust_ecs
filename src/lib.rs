@@ -2,17 +2,12 @@
 
 extern crate anymap;
 
-pub mod world;
-pub mod components;
-
 use std::collections::HashMap;
 
-/// Entity identifier used to acces an Entity in the world.
-#[derive(Copy, Clone)]
-pub struct Entity {
-    pub idx: usize,
-    pub uuid: usize,
-}
+pub mod world;
+pub mod entity;
+
+use entity::Entity;
 
 /// Iterates over all valid entities in the world it was generated from.
 /// Only allows immutable acces to the world because the world has been borrowed.

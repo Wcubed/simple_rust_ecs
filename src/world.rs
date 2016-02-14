@@ -2,9 +2,8 @@ use anymap::AnyMap;
 use std::any::Any;
 use std::collections::HashMap;
 
-use Entity;
+use entity::Entity;
 use EntityIterator;
-use components::{ Parent, Children };
 
 /// Keeps track of entities and their components.
 pub struct World {
@@ -16,6 +15,8 @@ pub struct World {
     reusable_idxs: Vec<usize>,
     /// List of all the components.
     components: Vec<AnyMap>,
+
+    parents: HashMap<Entity, Entity>,
 
     ent_added: HashMap<usize, usize>,
     ent_remove: HashMap<usize, usize>,
@@ -30,6 +31,8 @@ impl World {
             active: Vec::new(),
             reusable_idxs: Vec::new(),
             components: Vec::new(),
+
+            parents: HashMap::new(),
 
             ent_added: HashMap::new(),
             ent_remove: HashMap::new(),
@@ -142,8 +145,7 @@ impl World {
                         if self.components[cur_ent.idx].contains::<T>() {
                             return true;
                         }
-                        if let Some(&Parent(parent)) =
-                                self.components[cur_ent.idx].get::<Parent>() {
+                        if let Some(parent) = self.get_parent(&cur_ent) {
                             cur_ent = parent;
                             println!("Parent {}, {}", cur_ent.idx, cur_ent.uuid);
                         } else {
@@ -177,8 +179,7 @@ impl World {
                             if let Some(comp) = self.components[cur_ent.idx].get::<T>() {
                                 return Some(comp);
                             }
-                            if let Some(&Parent(parent)) =
-                                    self.components[cur_ent.idx].get::<Parent>() {
+                            if let Some(parent) = self.get_parent(&cur_ent) {
                                 cur_ent = parent;
                             } else {
                                 // No parents left.
@@ -228,6 +229,34 @@ impl World {
             }
         }
         None
+    }
+
+    /// Sets the parent of an entity.
+    /// Checks if both the entity and the parent are valid.
+    pub fn set_parent(&mut self, entity: &Entity, parent: &Entity) -> bool {
+        if self.is_valid_entity(entity) && self.is_valid_entity(parent) {
+            self.parents.insert(entity.clone(), parent.clone());
+        } else {
+            return false
+        }
+        true
+    }
+
+    /// Returns the parent of an entity, if it has one.
+    pub fn get_parent(&self, entity: &Entity) -> Option<Entity> {
+        if self.is_valid_entity(entity) {
+            if let Some(parent) = self.parents.get(entity) {
+                return Some(parent.clone());
+            }
+        }
+        None
+    }
+
+    /// Temoves the parenting link from an Entity.
+    pub fn unlink_parent(&mut self, entity: &Entity) {
+        if self.is_valid_entity(entity) {
+            self.parents.remove(entity);
+        }
     }
 
     /// Returns a lazy iterator for immutable acces to the entities.

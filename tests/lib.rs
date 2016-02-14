@@ -1,8 +1,7 @@
 extern crate srecs;
 
-use srecs::Entity;
+use srecs::entity::Entity;
 use srecs::world::World;
-use srecs::components::*;
 
 /// Struct to be used as a component.
 struct Position {
@@ -249,8 +248,8 @@ fn parenting_test() {
     world.confirm_changes();
 
     world.add_component(&parent, Position{ x: 10, y: 12 });
-    world.add_component(&child, Parent(parent));
-    world.add_component(&grand_child, Parent(child));
+    world.set_parent(&child, &parent);
+    world.set_parent(&grand_child, &child);
 
     // Check if the parent still has the Position component.
     if let Some(pos) = world.get_component::<Position>(&parent) {
