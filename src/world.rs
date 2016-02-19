@@ -96,6 +96,7 @@ impl World {
         }
 
         // Check if there are any invalid parent links.
+        // This could probably be done quicker (that `clone()` doesn't look efficient).
         for (child, parent) in self.parents.clone().iter() {
             if !(self.is_valid_entity(child) && self.is_valid_entity(parent)) {
                 self.parents.remove(child);
